@@ -1,17 +1,19 @@
-# Usa una imagen base de Go
-FROM golang:alpine
+FROM golang:1.21-bullseye as builder
 
-# Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia el código fuente a la imagen
-COPY services/go-auth /app
+COPY go.mod go.sum ./
+RUN go mod download
 
-# Compila la aplicación
-RUN go build -o go-auth
+COPY . .
 
-# Expón el puerto en el que se ejecutará la aplicación
+RUN go build -o ./bin/app .
+
+FROM busybox:glibc
+COPY --from=builder /app/bin/app /bin/app
+
+LABEL lang="go"
+LABEL type="app"
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación
-CMD ["./go-auth"]
+CMD [ "app" ]
