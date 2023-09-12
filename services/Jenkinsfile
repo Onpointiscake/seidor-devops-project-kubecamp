@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clonar el repositorio de GitHub
+                checkout scm
+            }
+        }
+
+        stage('Build and Test') {
+            steps {
+                // Ejecutar pruebas (ajusta esto según tu lenguaje)
+                sh 'make test'  // Ejemplo: Go
+                // sh 'mvn test'   // Ejemplo: Java
+                // sh 'composer test' // Ejemplo: PHP
+                // sh 'python -m unittest discover' // Ejemplo: Python
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                // Ejecutar análisis de calidad de código con SonarQube
+                withSonarQubeEnv('SonarQube_Server') {
+                    sh 'sonar-scanner'
+                }
+            }
+        }
+
+        stage('Docker Build and Push') {
+            steps {
+                // Construir la imagen Docker
+                sh 'docker build -t derunderyerm/go-auth:latest .'
+
+                // Subir la imagen Docker a DockerHub
+                sh 'docker push derunderyerm/go-auth:latest'
+            }
+        }
+    }
+}
